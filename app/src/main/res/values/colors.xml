@@ -5,4 +5,6 @@
     <color name="colorAccent">#FF4081</color>
     <color name="cl_default">#303F9F</color>
     <color name="cl_error">#FF4081</color>
+    <!--一般的灰色-->
+    <color name="gengray">#f6f6f6</color>
 </resources>

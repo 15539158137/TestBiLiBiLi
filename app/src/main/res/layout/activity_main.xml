@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.yosemite.testbilibili.MainActivity">
-<com.yosemite.testbilibili.barragepackage.Barrage
+<com.yosemite.testbilibili.barragepackage.BarrageView
     android:background="#000000"
     android:id="@+id/danmu"
     android:layout_width="match_parent"

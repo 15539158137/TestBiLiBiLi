@@ -33,7 +33,7 @@ public class ActivityThree extends Activity{
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_thress);
-    myBarrageView=findViewById(R.id.mys);
+    myBarrageView= (MyBarrageView) findViewById(R.id.mys);
 
         allContent=new ArrayList();
 

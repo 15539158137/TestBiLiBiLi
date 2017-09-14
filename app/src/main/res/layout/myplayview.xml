@@ -5,15 +5,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+    <View
+        android:id="@+id/top_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/cl_default" />
 <RelativeLayout
+    android:id="@+id/playerview"
+    android:layout_marginTop="5dp"
+    android:layout_below="@+id/top_view"
     android:layout_width="match_parent"
     android:layout_height="300dp"
-    android:layout_alignParentTop="true">
+  >
     <com.dou361.ijkplayer.widget.IjkVideoView
         android:id="@+id/video_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-
     <LinearLayout
         android:id="@+id/ll_bg"
         android:layout_width="match_parent"
@@ -219,11 +226,20 @@
         android:src="@drawable/simple_player_center_play"/>
 
 </RelativeLayout>
+    <!--弹幕的布局-->
+    <com.yosemite.testbilibili.barragepackage.BarrageView
+        android:layout_marginTop="5dp"
+        android:layout_below="@+id/top_view"
+        android:id="@+id/danmu"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:background="#00000000"/>
     <RelativeLayout
         android:id="@+id/checkbox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="370dp"
+  android:layout_below="@+id/playerview"
+        android:layout_marginTop="50dp"
         android:orientation="horizontal">
         <TextView
             android:id="@+id/he"
@@ -231,7 +247,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_alignParentLeft="true"
-            android:text="黑色"/>
+            android:text="白色"/>
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -267,11 +283,61 @@
             android:id="@+id/red"/>
 
     </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/speed"
+        android:layout_below="@+id/checkbox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/he1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:text="低速"/>
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/he1"
+            android:id="@+id/low_speed"/>
+
+        <TextView
+            android:id="@+id/lan1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="中速"/>
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/lan1"
+            android:id="@+id/medium_speed"/>
+
+        <TextView
+            android:id="@+id/hong1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerInParent="true"
+            android:text="高速"/>
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/hong1"
+            android:id="@+id/height_speed"/>
+
+    </RelativeLayout>
 <RelativeLayout
     android:layout_width="match_parent"
     android:layout_height="60dp"
-    android:layout_below="@+id/checkbox">
+    android:layout_below="@+id/speed">
     <EditText
+        android:id="@+id/editext"
         android:layout_alignParentLeft="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -280,7 +346,7 @@
 <Button
     android:layout_alignParentRight="true"
     android:id="@+id/send"
-    android:layout_width="50dp"
+    android:layout_width="100dp"
     android:layout_height="match_parent"
     android:text="发送"/>
 </RelativeLayout>
