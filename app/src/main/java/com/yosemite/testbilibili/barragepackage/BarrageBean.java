@@ -7,6 +7,8 @@ import android.animation.ValueAnimator;
  */
 
 public class BarrageBean {
+    int position;//视频播放的位置
+
     int color;//三种颜色，白，蓝，红
     String content;//聊天的内容
     int speend;//弹幕的速度
@@ -16,6 +18,14 @@ public class BarrageBean {
     int Y;
     //是否已经设置了xy，设置了就只能拿去用，没有设置就初始化
     boolean hadSet;
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
 
     public BarrageBean() {
         this.hadSet=false;

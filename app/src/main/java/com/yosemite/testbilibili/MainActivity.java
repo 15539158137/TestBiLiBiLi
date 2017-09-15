@@ -25,9 +25,14 @@ import com.gyf.barlibrary.ImmersionBar;
 import com.yosemite.testbilibili.barragepackage.BarrageBean;
 import com.yosemite.testbilibili.barragepackage.BarrageView;
 import com.yosemite.testbilibili.barragepackage.ScreenSizeUtils;
+import com.yosemite.testbilibili.basebean.GetBarrageBean;
+import com.yosemite.testbilibili.basebean.HttpBean;
+import com.yosemite.testbilibili.http.HttpApiS;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -42,9 +47,18 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 public class MainActivity extends AppCompatActivity {
+    //发送的弹幕需要保存起来
+    //首先，需要获取视频当前播放的位置，这个需要开定时器去轮训，这个50毫秒一次；
+    //对于视频的弹幕信息也需要持续去拿，也是50毫秒一次
+    //对于拿到弹幕的使用，根据视频播放的当前进度，去查看拿到的弹幕信息，如果有，就发弹幕，没有，就不发
+    //对于这里的弹幕处理，是使用list遍历的方法，为了减少时间，对于已经播放的弹幕就需哟啊根据当前的播放进度，进行相应的剔除操作，
+    //对于弹幕的信息：弹幕的内容、颜色、速度、显示的视频播放位置
     int colorModel;//0白色1蓝2红
     int speedModel;
     @BindView(R.id.write)
@@ -73,9 +87,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         barrageBean.setContent(editText.getText().toString());
+        barrageBean.setPosition(player.getCurrentPosition());
         allContent.add(barrageBean);
+
         Log.e("重新触发了动画", "===");
         startBarrage();
+        sendBarrage(barrageBean);
     }
 
     BarrageView barrage;
@@ -217,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
                 //计算出这个随便的Y坐标
                 int width = barrage.getRight() - barrage.getLeft();
                 int height = barrage.getBottom() - barrage.getTop();
-             //du对于这里的宽和高，默认是300高，屏幕一样的宽度，对于实际情况需要实际处理。
+                //du对于这里的宽和高，默认是300高，屏幕一样的宽度，对于实际情况需要实际处理。
                 //根据实际的尺寸去设置宽和高
                 int tempY = dip2px(MainActivity.this, 300) * x / 10;
                 allContent.get(i).setX(ScreenSizeUtils.getScreenWidth(MainActivity.this));
@@ -357,6 +374,9 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setPlaySource(url)
                 .startPlay();
+
+        Log.e("视频的时长",player.getDuration()+"");
+
     }
 
     private void startPlayerByCode() {
@@ -396,14 +416,116 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setPlaySource(list).startPlay()
         ;
-        player.setOnInfoListener(new IMediaPlayer.OnInfoListener() {
+        //100ms获取一次播发的进度，这个进度需要和用在弹幕的地方
+        //保存一个数值，如果找个数值和新的数值相同，呢么表示视频处于暂停状态
+        final int[] tempPosition = new int[1];
+        Observable observable = Observable.interval(50, TimeUnit.MILLISECONDS).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+        Observer observer = new Observer() {
             @Override
-            public boolean onInfo(IMediaPlayer iMediaPlayer, int i, int i1) {
-                return false;
+            public void onSubscribe(@NonNull Disposable d) {
             }
-        });
-    }
 
+            @Override
+            public void onNext(@NonNull Object o) {
+                if(player==null){
+
+                }else {
+                    if(tempPosition[0]==player.getCurrentPosition()){
+                        //表示视频处于暂停状态
+                    }else {
+                        tempPosition[0] =player.getCurrentPosition();
+                        Log.e("视频的长度和当前的进度",player.getDuration()+"="+player.getCurrentPosition());
+                    }
+
+
+                }
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+                Log.e("RXjava调用了完成的方法", "=======");
+            }
+        };
+        observable.subscribe(observer);
+
+    }
+    //发送弹幕的方法
+    private void sendBarrage(BarrageBean barrageBean){
+        Map<String, String> map = new HashMap<>();
+        map.put("content", barrageBean.getContent());
+        map.put("color", barrageBean.getColor()+"");
+        map.put("speed", barrageBean.getSpeend()+"");
+        map.put("position", barrageBean.getPosition()+"");
+        //116.196.94.144
+        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://116.196.94.144")
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build();
+        HttpApiS httpApiS = retrofit.create(HttpApiS.class);
+        httpApiS.sendBarrage(map).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<HttpBean>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@NonNull HttpBean httpBean) {
+                        Log.e("获取到的信息",httpBean.getResult()+"===");
+                        editText.setText("发送成功了");
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+                        Log.e("获取弹幕失败", e.getMessage() + "'");
+                        editText.setText("发送失败"+e.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });}
+    //获取弹幕的方法
+    private void getBarrages(){
+        Map<String, String> map = new HashMap<>();
+        map.put("1","22");
+        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://116.196.94.144")
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build();
+        HttpApiS httpApiS = retrofit.create(HttpApiS.class);
+        httpApiS.getBarrages(map).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<GetBarrageBean>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@NonNull GetBarrageBean barrageBean) {
+                        editText.setText("获取成功"+barrageBean.getReturnDatas().get(0).getContent()+"==");
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+                        Log.e("获取弹幕失败", e.getMessage() + "'");
+                        editText.setText("获取失败了"+e.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
     @Override
     protected void onPause() {
         super.onPause();
@@ -422,22 +544,10 @@ public class MainActivity extends AppCompatActivity {
         }
         String carrier = android.os.Build.MANUFACTURER;
         Log.e("手机信息", carrier);
-
+        getBarrages();
 
         //"Letv"
         startBarrage();
-//        TimerTask task = new TimerTask() {
-//            @Override
-//            public void run() {
-//                // task to run goes here
-//              Log.e("定时操作","====");
-//            }
-//        };
-//        Timer timer = new Timer();
-//        long delay = 0;
-//        long intevalPeriod = 1 * 1000;
-//        // schedules the task to be run in an interval
-//        timer.scheduleAtFixedRate(task, delay, intevalPeriod);
 
 
     }
