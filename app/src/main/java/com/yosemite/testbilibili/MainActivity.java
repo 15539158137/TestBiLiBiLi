@@ -242,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
                 //设置这个已经是设置过的了
                 allContent.get(i).setHadSet(true);
                 //根据文字的长度，动态设定最后的位置信息
-                final int finalPosition = allContent.get(i).getContent().length() * 60;
+                final int finalPosition = allContent.get(i).getContent().length() * 70;
                 //对于不同的手机型号进行判断
 
                 if (android.os.Build.MANUFACTURER.equals("Letv")) {
@@ -378,7 +378,6 @@ public class MainActivity extends AppCompatActivity {
         Log.e("视频的时长",player.getDuration()+"");
 
     }
-
     private void startPlayerByCode() {
         /**播放资源*/
         List<VideoijkBean> list = new ArrayList<VideoijkBean>();
@@ -435,6 +434,7 @@ public class MainActivity extends AppCompatActivity {
                     }else {
                         tempPosition[0] =player.getCurrentPosition();
                         Log.e("视频的长度和当前的进度",player.getDuration()+"="+player.getCurrentPosition());
+                        getBarrages(tempPosition[0]);
                     }
 
 
@@ -452,6 +452,8 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         observable.subscribe(observer);
+
+
 
     }
     //发送弹幕的方法
@@ -493,9 +495,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });}
     //获取弹幕的方法
-    private void getBarrages(){
+    private void getBarrages(final int position){
         Map<String, String> map = new HashMap<>();
-        map.put("1","22");
+        map.put("position",position+"");
         Retrofit retrofit = new Retrofit.Builder().baseUrl("http://116.196.94.144")
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -510,14 +512,26 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onNext(@NonNull GetBarrageBean barrageBean) {
-                        editText.setText("获取成功"+barrageBean.getReturnDatas().get(0).getContent()+"==");
+                    public void onNext(@NonNull GetBarrageBean getBarrageBean) {
+                        if(getBarrageBean.getReturnDatas()==null||getBarrageBean.getReturnDatas().size()==0){
+
+                        }else {
+                            List<BarrageBean> tempBarrages=new ArrayList();
+                            for(BarrageBean barrageBean1:getBarrageBean.getReturnDatas()){
+                                if(position+100>barrageBean1.getPosition()&&barrageBean1.getPosition()>position){
+                                        allContent.add(barrageBean1);
+                                    startBarrage();
+                                }
+                            }
+                            Log.e("获取弹幕成功","====="+getBarrageBean.getReturnDatas().get(0).getContent());
+                        }
+
                     }
 
                     @Override
                     public void onError(@NonNull Throwable e) {
                         Log.e("获取弹幕失败", e.getMessage() + "'");
-                        editText.setText("获取失败了"+e.getMessage());
+
                     }
 
                     @Override
@@ -544,8 +558,6 @@ public class MainActivity extends AppCompatActivity {
         }
         String carrier = android.os.Build.MANUFACTURER;
         Log.e("手机信息", carrier);
-        getBarrages();
-
         //"Letv"
         startBarrage();
 
